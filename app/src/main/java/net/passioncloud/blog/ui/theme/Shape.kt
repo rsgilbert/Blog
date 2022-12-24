@@ -9,3 +9,9 @@ val Shapes = Shapes(
     medium = RoundedCornerShape(4.dp),
     large = RoundedCornerShape(0.dp)
 )
+
+object MyShapes {
+    val editTextShape = RoundedCornerShape(8.dp)
+}
+
+
