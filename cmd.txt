@@ -1,0 +1,10 @@
+// Initialize amplify
+// see: https://docs.amplify.aws/lib/datastore/getting-started/q/platform/android/#data-schema
+amplify init
+
+// Add api support
+amplify add api
+
+// Generate  models
+amplify codegen models
+
