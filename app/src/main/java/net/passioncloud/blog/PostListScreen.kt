@@ -58,16 +58,6 @@ fun PostItem(post: Post, onItemClick: (String) -> Unit, modifier: Modifier = Mod
 }
 
 
-fun createNewPost(coroutineScope: CoroutineScope) {
-    val post = Post.builder()
-        .title("Test post")
-        .status(PostStatus.ACTIVE)
-        .content("This is sample content")
-        .build()
-    coroutineScope.launch {
-        Amplify.DataStore.save(post)
-    }
-}
 
 
 

@@ -28,7 +28,7 @@ public final class Post implements Model {
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String", isRequired = true) String title;
   private final @ModelField(targetType="PostStatus", isRequired = true) PostStatus status;
-  private final @ModelField(targetType="Int") Integer rating;
+  private final @ModelField(targetType="Int", isRequired = true) Integer rating;
   private final @ModelField(targetType="String") String content;
   private @ModelField(targetType="AWSDateTime", isReadOnly = true) Temporal.DateTime createdAt;
   private @ModelField(targetType="AWSDateTime", isReadOnly = true) Temporal.DateTime updatedAt;
@@ -154,19 +154,23 @@ public final class Post implements Model {
   
 
   public interface StatusStep {
-    BuildStep status(PostStatus status);
+    RatingStep status(PostStatus status);
+  }
+  
+
+  public interface RatingStep {
+    BuildStep rating(Integer rating);
   }
   
 
   public interface BuildStep {
     Post build();
     BuildStep id(String id);
-    BuildStep rating(Integer rating);
     BuildStep content(String content);
   }
   
 
-  public static class Builder implements TitleStep, StatusStep, BuildStep {
+  public static class Builder implements TitleStep, StatusStep, RatingStep, BuildStep {
     private String id;
     private String title;
     private PostStatus status;
@@ -192,7 +196,7 @@ public final class Post implements Model {
     }
     
     @Override
-     public BuildStep status(PostStatus status) {
+     public RatingStep status(PostStatus status) {
         Objects.requireNonNull(status);
         this.status = status;
         return this;
@@ -200,6 +204,7 @@ public final class Post implements Model {
     
     @Override
      public BuildStep rating(Integer rating) {
+        Objects.requireNonNull(rating);
         this.rating = rating;
         return this;
     }

@@ -1,12 +1,25 @@
-type Post @model {
-    id: ID!
-    title: String!
-    status: PostStatus!
-    rating: Int
-    content: String
-}
-
 enum PostStatus {
     ACTIVE
     INACTIVE
 }
+
+# authorization: https://docs.amplify.aws/cli-legacy/graphql-transformer/auth/#dynamic-group-authorization
+type Post @model @auth(rules: [{ allow: public}]){
+    id: ID!
+    title: String!
+    status: PostStatus!
+    rating: Int!
+    content: String
+#    comments: [Comment] @hasMany(indexName: "byPost", fields: ["id"])
+}
+
+#type Comment @model {
+#    id: ID!
+#    postID: ID! @index(name: "byPost", sortKeyFields: ["content"])
+#    post: Post! @belongsTo(fields: ["postID"])
+#    content: String!
+#}
+
+
+
+

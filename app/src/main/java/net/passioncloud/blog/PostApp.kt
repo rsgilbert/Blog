@@ -1,9 +1,12 @@
 package net.passioncloud.blog
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,7 +22,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.amplifyframework.core.model.query.Where
 import com.amplifyframework.datastore.generated.model.Post
+import com.amplifyframework.datastore.generated.model.PostStatus
 import com.amplifyframework.kotlin.core.Amplify
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
@@ -29,6 +34,7 @@ fun PostApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val backStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry.value?.destination?.route
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -41,6 +47,13 @@ fun PostApp(modifier: Modifier = Modifier) {
                     PostActions(navController = navController)
                 }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                createNewPost(scope)
+            }) {
+                Image(imageVector = Icons.Filled.Add, contentDescription = "Add")
+            }
         }
     ) {
         PostAppNavHost(modifier = modifier, navController = navController)
@@ -116,5 +129,18 @@ fun PostActions(navController: NavHostController) {
     }
 }
 
+
+
+fun createNewPost(coroutineScope: CoroutineScope) {
+    val post = Post.builder()
+        .title("Test post")
+        .status(PostStatus.ACTIVE)
+        .rating(5)
+        .content("This is sample content")
+        .build()
+    coroutineScope.launch {
+        Amplify.DataStore.save(post)
+    }
+}
 
 
