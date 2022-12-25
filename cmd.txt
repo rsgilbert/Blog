@@ -8,3 +8,8 @@ amplify add api
 // Generate  models
 amplify codegen models
 
+// push amplify project to cloud
+// also for error about sync failure, see: https://github.com/aws-amplify/amplify-js/issues/4853#issuecomment-588402329
+amplify push
+
+
