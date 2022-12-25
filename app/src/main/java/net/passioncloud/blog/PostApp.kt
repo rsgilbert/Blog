@@ -1,12 +1,15 @@
 package net.passioncloud.blog
 
-import androidx.compose.material.Scaffold
-import androidx.compose.material.rememberScaffoldState
+import android.util.Log
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,23 +17,33 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.amplifyframework.core.model.query.QueryOptions
 import com.amplifyframework.core.model.query.Where
 import com.amplifyframework.datastore.generated.model.Post
 import com.amplifyframework.kotlin.core.Amplify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 
 @Composable
-fun PostApp(modifier: Modifier=Modifier) {
+fun PostApp(modifier: Modifier = Modifier) {
     val scaffoldState = rememberScaffoldState()
     val navController = rememberNavController()
     val backStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry.value?.destination?.route
 
     Scaffold(
-        scaffoldState=scaffoldState,
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Blog")
+                },
+                actions = {
+                    PostActions(navController = navController)
+                }
+            )
+        }
     ) {
-        PostAppNavHost(navController = navController)
+        PostAppNavHost(modifier = modifier, navController = navController)
     }
 }
 
@@ -41,22 +54,31 @@ enum class PostScreens {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun PostAppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
-    NavHost(navController = navController, startDestination = PostScreens.PostListScreen.name, modifier = modifier) {
+fun PostAppNavHost(modifier: Modifier = Modifier, navController: NavHostController) {
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry.value?.destination?.route
+    NavHost(
+        navController = navController,
+        startDestination = PostScreens.PostListScreen.name,
+        modifier = modifier
+    ) {
         composable(PostScreens.PostListScreen.name) {
             val onItemClick = fun(postId: String) {
                 navController.navigate("${PostScreens.PostDetailsScreen.name}/$postId")
             }
             PostListScreen(onItemClick)
         }
-        composable("${PostScreens.PostDetailsScreen.name}/{postId}",
-            arguments=listOf(navArgument("postId") {
+        composable(
+            "${PostScreens.PostDetailsScreen.name}/{postId}",
+            arguments = listOf(navArgument("postId") {
                 type = NavType.StringType
-            })) {  entry ->
+            })
+        ) { entry ->
             val postId = entry.arguments?.getString("postId")
-            val post by Amplify.DataStore.query(Post::class, Where.matches(Post.ID.eq(postId))).collectAsState(
-                initial = null
-            )
+            val post by Amplify.DataStore.query(Post::class, Where.matches(Post.ID.eq(postId)))
+                .collectAsState(
+                    initial = null
+                )
             post?.let { p ->
                 PostDetailsScreen(post = p)
             }
@@ -64,5 +86,35 @@ fun PostAppNavHost(navController: NavHostController, modifier: Modifier = Modifi
     }
 
 }
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@Composable
+fun PostActions(navController: NavHostController) {
+    val backStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry.value?.destination?.route
+    val scope = rememberCoroutineScope()
+
+
+    Row(modifier = Modifier.padding(end = 16.dp)) {
+        when (currentRoute) {
+            "${PostScreens.PostDetailsScreen.name}/{postId}" -> {
+                val postId = backStackEntry.value?.arguments?.get("postId").toString()
+                Button(onClick = {
+                    Log.d("PostApp", "deleting post $postId")
+                    scope.launch {
+                        Amplify.DataStore.query(Post::class, Where.matches(Post.ID.eq(postId)))
+                            .collect {
+                                Amplify.DataStore.delete(it)
+                                navController.popBackStack()
+                            }
+                    }
+                }) {
+                    Text(text = "Delete")
+                }
+            }
+        }
+    }
+}
+
 
 
